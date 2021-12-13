@@ -26,7 +26,7 @@ class Move:
 
     files_to_cols = {"a": 0, "b": 1, "c": 2, "d": 3,
                      "e": 4, "f": 5, "g": 6, "h": 7}
-    cols_to_files = {v: k for k, v in ranks_to_rows.items()}
+    cols_to_files = {v: k for k, v in files_to_cols.items()}
 
     def __init__(self, start_sq, end_sq, board):
         self.start_row, self.start_col = start_sq[0], start_sq[1]
@@ -35,7 +35,19 @@ class Move:
         self.piece_captured = board[self.end_row][self.end_col]
 
     def get_chess_notation(self):
-        return self.get_rank_file(self.start_row, self.start_col) + self.get_rank_file(self.end_row, self.end_col)
+        # Check, checkmate, castling not yet implemented
+        name_moved = self.piece_moved[1]
+        name_captured = self.piece_captured[1]
+        if name_moved == "P":
+            if name_captured == "-":
+                return self.get_rank_file(self.end_row, self.end_col)
+            else:
+                return self.get_rank_file(self.start_row, self.start_col)[0] + "x" + self.get_rank_file(self.end_row, self.end_col)
+        else:
+            if name_captured == "-":
+                return name_moved + self.get_rank_file(self.end_row, self.end_col)
+            else:
+                return name_moved + "x" + self.get_rank_file(self.end_row, self.end_col)
 
     def get_rank_file(self, r, c):
         return self.cols_to_files[c] + self.rows_to_ranks[r]
