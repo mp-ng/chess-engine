@@ -13,10 +13,19 @@ class GameState:
         self.white_to_move = True
         self.move_log = []
 
+    # Castling, promotion and en passant not yet implemented
     def make_move(self, move):
         self.board[move.start_row][move.start_col] = "--"
         self.board[move.end_row][move.end_col] = move.piece_moved
+        self.move_log.append(move)
         self.white_to_move = not self.white_to_move
+
+    def undo_move(self):
+        if self.move_log:
+            move = self.move_log.pop()
+            self.board[move.start_row][move.start_col] = move.piece_moved
+            self.board[move.end_row][move.end_col] = move.piece_captured
+            self.white_to_move = not self.white_to_move
 
 
 class Move:
@@ -35,14 +44,15 @@ class Move:
         self.piece_captured = board[self.end_row][self.end_col]
 
     def get_chess_notation(self):
-        # Check, checkmate, castling not yet implemented
+        # Check, checkmate, castling and promotion not yet implemented
+        # Ambiguity is not be avoided for simplicity (can refer to stockfish code)
         name_moved = self.piece_moved[1]
         name_captured = self.piece_captured[1]
         if name_moved == "P":
             if name_captured == "-":
                 return self.get_rank_file(self.end_row, self.end_col)
             else:
-                return self.get_rank_file(self.start_row, self.start_col)[0] + "x" + self.get_rank_file(self.end_row, self.end_col)
+                return self.cols_to_files[self.start_col] + "x" + self.get_rank_file(self.end_row, self.end_col)
         else:
             if name_captured == "-":
                 return name_moved + self.get_rank_file(self.end_row, self.end_col)
