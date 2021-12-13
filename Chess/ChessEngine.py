@@ -45,7 +45,7 @@ class GameState:
                 color = self.board[r][c][0]
                 if (color == 'w' and self.white_to_move) or (color == 'b' and not self.white_to_move):
                     piece = self.board[r][c][1]
-                    return self.move_mappings[piece]
+                    self.move_mappings[piece](r, c, moves)
         return moves
 
     def get_p_moves(self, r, c, moves):
