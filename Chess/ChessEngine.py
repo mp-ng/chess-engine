@@ -20,6 +20,8 @@ class GameState:
                               'B': self.get_bishop_moves, 'K': self.get_king_moves, 'Q': self.get_queen_moves}
         self.white_to_move = True
         self.move_log = []
+        self.white_king_loc = (7, 4)
+        self.black_king_loc = (0, 4)
 
     # Castling, promotion and en passant not yet implemented
     def make_move(self, move):
@@ -28,6 +30,11 @@ class GameState:
         self.move_log.append(move)
         self.white_to_move = not self.white_to_move
 
+        if move.piece_moved == 'wk':
+            self.white_king_loc = (move.end_row, move.end_col)
+        elif move.piece_moved == 'bk':
+            self.black_king_loc = (move.end_row, move.end_col)
+
     def undo_move(self):
         if self.move_log:
             move = self.move_log.pop()
@@ -35,10 +42,15 @@ class GameState:
             self.board[move.end_row][move.end_col] = move.piece_captured
             self.white_to_move = not self.white_to_move
 
-    def get_valid_moves(self):
-        return self.get_all_possible_moves()
+            if move.piece_moved == 'wk':
+                self.white_king_loc = (move.start_row, move.start_col)
+            elif move.piece_moved == 'bk':
+                self.black_king_loc = (move.start_row, move.start_col)
 
-    def get_all_possible_moves(self):
+    def get_valid_moves(self):
+        return self.get_all_moves()
+
+    def get_all_moves(self):
         moves = []
         for r in range(len(self.board)):
             for c in range(len(self.board[r])):
@@ -149,7 +161,7 @@ class Move:
 
     def get_chess_notation(self):
         # Check, checkmate, castling and promotion not yet implemented
-        # Ambiguity is not be avoided for simplicity (can refer to stockfish code)
+        # Ambiguity is not be avoided for simplicity
         name_moved = self.piece_moved[1]
         name_captured = self.piece_captured[1]
         if name_moved == 'P':
