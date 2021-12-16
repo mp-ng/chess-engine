@@ -22,6 +22,8 @@ class GameState:
         self.move_log = []
         self.white_king_loc = (7, 4)
         self.black_king_loc = (0, 4)
+        self.checkmate = False
+        self.stalemate = False
 
     # Castling, promotion and en passant not yet implemented
     def make_move(self, move):
@@ -52,19 +54,27 @@ class GameState:
         s = ""
         for move in moves:
             s += (str(move) + ", ")
-        print(s)
-        print("//")
-        for i in range(len(moves)-1, -1, -1):
-            self.make_move(moves[i])
+        print("All possible moves: " + s)
+        for m in moves[::-1]:
+            self.make_move(m)
             self.white_to_move = not self.white_to_move
             if self.in_check():
-                moves.remove(moves[i])
+                moves.remove(m)
             self.white_to_move = not self.white_to_move
             self.undo_move()
         s = ""
         for move in moves:
             s += (str(move) + ", ")
-        print(s)
+        print("All valid moves: " + s)
+        if not moves:
+            if self.in_check():
+                self.checkmate = True
+            else:
+                self.stalemate = True
+        else:
+            self.checkmate = False
+            self.stalemate = False
+
         return moves
 
     def in_check(self):

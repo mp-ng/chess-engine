@@ -52,7 +52,7 @@ def main():
                     player_clicks.append(sq_selected)
                 if len(player_clicks) == 2:
                     move = ChessEngine.Move(player_clicks[0], player_clicks[1], gs.board)
-                    print(move.get_chess_notation())
+                    print("You played: " + move.get_chess_notation())
                     if move in valid_moves:
                         gs.make_move(move)
                         move_made = True
