@@ -30,9 +30,9 @@ class GameState:
         self.move_log.append(move)
         self.white_to_move = not self.white_to_move
 
-        if move.piece_moved == 'wk':
+        if move.piece_moved == 'wK':
             self.white_king_loc = (move.end_row, move.end_col)
-        elif move.piece_moved == 'bk':
+        elif move.piece_moved == 'bK':
             self.black_king_loc = (move.end_row, move.end_col)
 
     def undo_move(self):
@@ -42,13 +42,45 @@ class GameState:
             self.board[move.end_row][move.end_col] = move.piece_captured
             self.white_to_move = not self.white_to_move
 
-            if move.piece_moved == 'wk':
+            if move.piece_moved == 'wK':
                 self.white_king_loc = (move.start_row, move.start_col)
-            elif move.piece_moved == 'bk':
+            elif move.piece_moved == 'bK':
                 self.black_king_loc = (move.start_row, move.start_col)
 
     def get_valid_moves(self):
-        return self.get_all_moves()
+        moves = self.get_all_moves()
+        s = ""
+        for move in moves:
+            s += (str(move) + ", ")
+        print(s)
+        print("//")
+        for i in range(len(moves)-1, -1, -1):
+            self.make_move(moves[i])
+            self.white_to_move = not self.white_to_move
+            if self.in_check():
+                moves.remove(moves[i])
+            self.white_to_move = not self.white_to_move
+            self.undo_move()
+        s = ""
+        for move in moves:
+            s += (str(move) + ", ")
+        print(s)
+        return moves
+
+    def in_check(self):
+        if self.white_to_move:
+            return self.is_under_attack(self.white_king_loc[0], self.white_king_loc[1])
+        else:
+            return self.is_under_attack(self.black_king_loc[0], self.black_king_loc[1])
+
+    def is_under_attack(self, r, c):
+        self.white_to_move = not self.white_to_move
+        enemy_moves = self.get_all_moves()
+        self.white_to_move = not self.white_to_move
+        for m in enemy_moves:
+            if m.end_row == r and m.end_col == c:
+                return True
+        return False
 
     def get_all_moves(self):
         moves = []
@@ -88,15 +120,20 @@ class GameState:
 
     def get_rook_moves(self, r, c, moves):
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        ally_color = 'w' if self.white_to_move else 'b'
+        enemy_color = 'b' if self.white_to_move else 'w'
         for d in directions:
             for step in range(1, 8):
                 end_row = r + d[0] * step
                 end_col = c + d[1] * step
                 if end_row in range(0, 8) and end_col in range(0, 8):
                     end_piece = self.board[end_row][end_col]
-                    if end_piece[0] != ally_color:
+                    if end_piece == '--':
                         moves.append(Move((r, c), (end_row, end_col), self.board))
+                    elif end_piece[0] == enemy_color:
+                        moves.append(Move((r, c), (end_row, end_col), self.board))
+                        break
+                    else:
+                        break
 
     def get_knight_moves(self, r, c, moves):
         directions = [(-2, -1), (-1, -2), (1, -2), (2, -1), (2, 1), (1, 2), (-1, 2), (-2, 1)]
@@ -111,15 +148,20 @@ class GameState:
 
     def get_bishop_moves(self, r, c, moves):
         directions = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
-        ally_color = 'w' if self.white_to_move else 'b'
+        enemy_color = 'b' if self.white_to_move else 'w'
         for d in directions:
             for step in range(1, 8):
                 end_row = r + d[0] * step
                 end_col = c + d[1] * step
                 if end_row in range(0, 8) and end_col in range(0, 8):
                     end_piece = self.board[end_row][end_col]
-                    if end_piece[0] != ally_color:
+                    if end_piece == '--':
                         moves.append(Move((r, c), (end_row, end_col), self.board))
+                    elif end_piece[0] == enemy_color:
+                        moves.append(Move((r, c), (end_row, end_col), self.board))
+                        break
+                    else:
+                        break
 
     def get_king_moves(self, r, c, moves):
         directions = [(-1, -1), (0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0)]
@@ -155,9 +197,10 @@ class Move:
         self.move_ID = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col
 
     def __eq__(self, other):
-        if isinstance(other, Move):
-            return self.move_ID == other.move_ID
-        return False
+        return isinstance(other, Move) and self.move_ID == other.move_ID
+
+    def __str__(self):
+        return self.get_chess_notation()
 
     def get_chess_notation(self):
         # Check, checkmate, castling and promotion not yet implemented
